@@ -11,6 +11,11 @@ const pool = new postgres.Pool(databaseUrl, 3, true)
 
 
 serve(async (_req) => {
+  // This is needed if you're planning to invoke your function from a browser.
+  if (_req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     // Grab a connection from the pool
     const { id } = await _req.json()
