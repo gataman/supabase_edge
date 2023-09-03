@@ -1,12 +1,14 @@
 
 import * as postgres from 'postgres'
-import { serve } from "std/server"
+import { serve } from 'std/server'
+import { corsHeaders } from '../_shared/cors.ts'
 
 // Get the connection string from the environment variable "SUPABASE_DB_URL"
 const databaseUrl = Deno.env.get('DATABASE_URL')!
 
 // Create a database pool with three connections that are lazily established
 const pool = new postgres.Pool(databaseUrl, 3, true)
+
 
 serve(async (_req) => {
   try {
@@ -48,7 +50,7 @@ serve(async (_req) => {
       return new Response(body, {
         status: 200,
         headers: {
-          'Content-Type': 'application/json; charset=utf-8',
+          ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8',
         },
       })
     } finally {
@@ -57,6 +59,9 @@ serve(async (_req) => {
     }
   } catch (err) {
     console.error(err)
-    return new Response(String(err?.message ?? err), { status: 500 })
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 }) 
